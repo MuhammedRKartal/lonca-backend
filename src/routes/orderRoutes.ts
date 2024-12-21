@@ -1,8 +1,12 @@
 import { Router } from "express";
-import { getTotalProductsInfoSoldByVendor } from "../controllers/orderController";
+import {
+  getMonthlySellingRatesByVendor,
+  getTotalProductsInfoSoldByVendor,
+} from "../controllers/orderController";
 
 const router = Router();
 
-router.get("/vendor/:vendorName", getTotalProductsInfoSoldByVendor);
+router.get("/:vendorName", getTotalProductsInfoSoldByVendor);
+router.get("/monthly/:vendorName/:year", getMonthlySellingRatesByVendor);
 
 export default router;

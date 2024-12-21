@@ -10,11 +10,8 @@ export const getAllVendors = async (
 ) => {
   try {
     const vendors = await vendor.find();
-    if (!vendors) {
-      throw new HttpError("Failed to fetch vendors!", 500);
-    }
 
-    if (vendors.length === 0) {
+    if (!vendors || vendors.length === 0) {
       throw new HttpError("There are no vendors in the database!", 404);
     }
 
