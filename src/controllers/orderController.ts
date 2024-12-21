@@ -21,6 +21,15 @@ export const getTotalProductsInfoSoldByVendor = async (
   }
 
   try {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+
+    if (page < 1 || limit < 1) {
+      throw new HttpError("Page and limit must be positive integers.", 400);
+    }
+
+    const skip = (page - 1) * limit;
+
     const vendor = await Vendor.findOne({ name: vendorName });
 
     if (!vendor) {
@@ -36,17 +45,14 @@ export const getTotalProductsInfoSoldByVendor = async (
     const productIds = parentProducts.map((product) => product._id);
 
     const orders = await Order.aggregate([
-      // Deconstructs chart_items in a array to evaluate them seperately.
       {
         $unwind: "$cart_item",
       },
-      // Find the products of given Vendor in those deconstructed elements.
       {
         $match: {
           "cart_item.product": { $in: productIds },
         },
       },
-      // Sum up the values for each product.
       {
         $group: {
           _id: "$cart_item.product",
@@ -56,28 +62,25 @@ export const getTotalProductsInfoSoldByVendor = async (
           totalMoneyEarned: { $sum: "$cart_item.price" },
         },
       },
-      // Left outer join
       {
         $lookup: {
-          from: "parent_products", // collection to join
-          localField: "_id", // field from the input documents
-          foreignField: "_id", // field from the documents of the "from" collection
-          as: "productDetails", // output array field
+          from: "parent_products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "productDetails",
         },
       },
-      // Deconstructing the productDetails array that we just combined with outer join, (it has only 1 field which is productName)
       {
         $unwind: "$productDetails",
       },
-      // Setup of returned values.
       {
         $project: {
           _id: false,
           productName: "$productDetails.name",
-          totalPacksSold: true,
-          totalMoneyEarned: true,
-          totalCogs: true,
-          totalItemsSold: true,
+          totalPacksSold: { $round: ["$totalPacksSold", 2] },
+          totalMoneyEarned: { $round: ["$totalMoneyEarned", 2] },
+          totalCogs: { $round: ["$totalCogs", 2] },
+          totalItemsSold: { $round: ["$totalItemsSold", 2] },
         },
       },
       {
@@ -86,16 +89,47 @@ export const getTotalProductsInfoSoldByVendor = async (
           totalMoneyEarned: -1,
         },
       },
+      { $skip: skip },
+      { $limit: limit },
     ]);
 
     if (!orders.length) {
       throw new HttpError(`No orders found for vendor ${vendorName}!`, 404);
     }
 
+    //This part is to calculate the pagination size
+    const totalOrders = await Order.aggregate([
+      {
+        $unwind: "$cart_item",
+      },
+      {
+        $match: {
+          "cart_item.product": { $in: productIds },
+        },
+      },
+      {
+        $group: {
+          _id: "$cart_item.product",
+        },
+      },
+    ]);
+
+    const totalRecords = totalOrders.length;
+    const totalPages = Math.ceil(totalRecords / limit);
+
     logger.info(
       `Information of sold products by vendor ${vendorName} calculated successfully.`
     );
-    res.status(200).json(orders);
+
+    res.status(200).json({
+      orders,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalRecords,
+        pageSize: orders.length,
+      },
+    });
   } catch (error) {
     next(error);
   }
