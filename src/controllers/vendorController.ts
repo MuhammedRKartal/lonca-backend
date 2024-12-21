@@ -18,7 +18,11 @@ export const getAllVendors = async (
 
     const skip = (page - 1) * limit;
 
-    const vendors = await vendor.find().skip(skip).limit(limit);
+    const vendors = await vendor
+      .find()
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(limit);
 
     if (!vendors || vendors.length === 0) {
       throw new HttpError("There are no vendors in the database!", 404);
