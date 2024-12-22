@@ -13,14 +13,14 @@ export const getTotalProductsInfoSoldByVendor = async (
 ) => {
   const { vendorName } = req.params;
 
-  if (!vendorName) {
-    const missingFields = [!vendorName && "vendorName"]
-      .filter(Boolean)
-      .join(", ");
-    throw new HttpError(`Missing field(s): ${missingFields}.`, 404);
-  }
-
   try {
+    if (!vendorName) {
+      const missingFields = [!vendorName && "vendorName"]
+        .filter(Boolean)
+        .join(", ");
+      throw new HttpError(`Missing parameter field(s): ${missingFields}.`, 404);
+    }
+
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
 
@@ -142,14 +142,14 @@ export const getMonthlySellingRatesByVendor = async (
 ) => {
   const { vendorName, year } = req.params;
 
-  if (!vendorName || !year) {
-    const missingFields = [!vendorName && "vendorName", !year && "year"]
-      .filter(Boolean)
-      .join(", ");
-    throw new HttpError(`Missing parameter field(s): ${missingFields}.`, 404);
-  }
-
   try {
+    if (!vendorName || !year) {
+      const missingFields = [!vendorName && "vendorName", !year && "year"]
+        .filter(Boolean)
+        .join(", ");
+      throw new HttpError(`Missing parameter field(s): ${missingFields}.`, 404);
+    }
+
     const vendor = await Vendor.findOne({ name: vendorName });
 
     if (!vendor) {
