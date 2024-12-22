@@ -29,7 +29,7 @@ To run this project, you will need to add the following environment variables to
 #### Get total products info sold by vendor
 
 ```http
-  GET /api/items/${id}
+  GET /orders/${vendorName}
 ```
 
 | Parameter    | Type     | Description                           |
@@ -37,6 +37,10 @@ To run this project, you will need to add the following environment variables to
 | `vendorName` | `string` | **Required**. Name of vendor to fetch |
 
 #### Get monthly selling rates by vendor
+
+```http
+  GET /orders/monthly/${vendorName}/${year}
+```
 
 | Parameter    | Type     | Description                            |
 | :----------- | :------- | :------------------------------------- |
