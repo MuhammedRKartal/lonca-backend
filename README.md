@@ -2,7 +2,9 @@
 
 This project aims to provide vendors with detailed insights into their sales performance, both numerically and visually. The homepage displays a list of all vendors contributing to the supplier, allowing anyone to view the sales data of specific companies, as there is no authentication system in place.
 
-## Tech Stack
+## Tech Stack,
+
+**Node:** v20.18.0
 
 **Main:** Node, Express, Typescript, Mongoose
 
